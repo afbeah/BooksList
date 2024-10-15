@@ -1,42 +1,78 @@
 package handler
 
 import (
-	models "BooksList/src/Model"
-	"github.com/labstack/echo/v4"
+	model "BooksList/src/Model"
+	service "BooksList/src/Service"
 	"net/http"
+	"strconv"
+
+	"github.com/labstack/echo/v4"
 )
 
-type Read struct {
-	books []models.Book
+type BookHandler struct {
+	Service service.BookService
 }
 
-//HealthCheck
+func NewBookHandler(s service.BookService) *BookHandler {
+	return &BookHandler{Service: s}
+}
+
+// HealthCheck
 func HealthCheck(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{
 		"status": "UP",
 	})
 }
 
-func AddBook(c echo.Context) error {
-	var books models.Book
-	if err := c.Bind(&books); err != nil {
-		return err
+func (h *BookHandler) AddBook(c echo.Context) error {
+	var book model.Book
+	if err := c.Bind(&book); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid data"})
 	}
 
-	return c.JSON(http.StatusCreated, books)
+	if err := h.Service.AddBook(&book); err != nil {
+		return c.JSON(http.StatusConflict, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusCreated, book)
 }
 
-func GetBook(c echo.Context) error { 
-	var books models.Book
-	return c.JSON(http.StatusOK, books)
+func (h *BookHandler) GetBook(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
+	}
+
+	book, err := h.Service.GetBook(id)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, book)
 }
 
-func AttBook(c echo.Context) error {
-	var books models.Book
-	return c.JSON(http.StatusOK, books)
+func (h *BookHandler) UpdateBook(c echo.Context) error {
+	var book model.Book
+	if err := c.Bind(&book); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid data"})
+	}
+
+	if err := h.Service.UpdateBook(&book); err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, book)
 }
 
-func DeleteBook(c echo.Context) error{
-	var books models.Book
-	return c.JSON(http.StatusOK, books)
+func (h *BookHandler) DeleteBook(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
+	}
+
+	if err := h.Service.DeleteBook(id); err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }

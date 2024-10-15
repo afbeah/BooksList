@@ -1,48 +1,46 @@
 package main
 
 import (
-	handlers "BooksList/src/Handler"
-	"net/http"
-
+	"BooksList/src/Handler"
+	"BooksList/src/Service"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
+	"net/http"
 )
 
 func main() {
-
 	//Logger
 	logger, err := zap.NewProduction()
 	if err != nil {
 		panic(err)
 	}
 	defer logger.Sync()
+	logger.Info("Logger initialized successfully")
 
-	logger.Info("Logger initialized successfully", zap.String("ex", "logger simple ex"))
-
-	// Criando uma nova instância do Echo
+	//Criando uma nova instância do Echo
 	e := echo.New()
-
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	// Definindo uma rota básica
+	//Criando  serviço e o handler
+	bookService := service.NewBookService()
+	bookHandler := handler.NewBookHandler(bookService)
+
+	//Rotas
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, Echo!")
 	})
+	e.GET("/health", handler.HealthCheck)
 
-	//Rota para o Healthcheck
-	e.GET("/health", handlers.HealthCheck)
+	//Rotas relacionadas aos livros
+	books := e.Group("/books")
+	books.POST("/", bookHandler.AddBook)
+	books.GET("/:id", bookHandler.GetBook)
+	books.PUT("/", bookHandler.UpdateBook)
+	books.DELETE("/:id", bookHandler.DeleteBook)
 
 	// Iniciando o servidor na porta 8080
 	e.Logger.Fatal(e.Start(":8080"))
-
-	//Rotas
-	e.GET("books/getbook", handlers.GetBook)
-	e.POST("books/addbook", handlers.AddBook)
-	e.PUT("books/attbook", handlers.AttBook)
-	e.DELETE("books/deletebook", handlers.DeleteBook)
-
-
-
 }
+
