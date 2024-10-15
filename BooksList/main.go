@@ -35,7 +35,7 @@ func main() {
 
 	//Rotas relacionadas aos livros
 	books := e.Group("/books")
-	books.POST("/", bookHandler.AddBook)
+	books.POST("", bookHandler.AddBook)
 	books.GET("/:id", bookHandler.GetBook)
 	books.PUT("/", bookHandler.UpdateBook)
 	books.DELETE("/:id", bookHandler.DeleteBook)
