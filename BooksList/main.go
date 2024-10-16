@@ -27,7 +27,7 @@ func main() {
 	bookService := service.NewBookService()
 	bookHandler := handler.NewBookHandler(bookService)
 
-	//Rotas
+	//Rotas Verificação do Projeto
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, Echo!")
 	})

@@ -17,7 +17,7 @@ Cliente HTTP para testes: Insomnia ou Postman
 
 1. Clone o repositório:
 
--- git clone https://github.com/seu-usuario/BooksList.git --
+-- git clone git@github.com:afbeah/BooksList.git --
 cd BooksList
 
 2. Instale as dependências:
